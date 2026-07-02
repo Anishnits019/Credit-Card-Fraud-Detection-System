@@ -11,3 +11,4 @@ s3fs
 datetime
 streamlit
 plotly
+folium
