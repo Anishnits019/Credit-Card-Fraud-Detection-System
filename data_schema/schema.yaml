@@ -1,0 +1,39 @@
+columns:
+  age: int64
+  gender: int 64
+  height: float 64
+  weight: float 64
+  ap_hi: int 64
+  ap_lo: int 64
+  bmi: float 64
+  bmi_category: category
+  cholesterol: int 64
+  gluc: int 64
+  smoke: int 64
+  alco: int 64
+  active: int 64
+  cardio: int 64
+
+numerical_columns:
+  - age
+  - height
+  - weight
+  - ap_hi
+  - ap_lo
+
+categorical_columns:
+  - gender
+  - bmi_category
+  - cholesterol
+  - gluc
+  - smoke
+  - alco
+  - active
+  - cardio
+  - gender
+
+target_column:
+  - cardio
+
+drop_columns:
+  - id

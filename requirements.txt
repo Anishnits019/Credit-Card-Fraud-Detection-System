@@ -1,0 +1,13 @@
+pandas
+numpy
+scikit-learn
+python-dotenv
+pymongo
+mlflow
+fastparquet 
+python-dotenv
+seaborn
+s3fs
+datetime
+streamlit
+plotly
