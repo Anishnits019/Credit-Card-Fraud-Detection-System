@@ -195,7 +195,7 @@ credit-card-fraud-detection/
 ├── .env                                # Environment variables (gitignored)
 ├── .gitignore
 ├── commands.txt
-├── dashboard.py                        # App/dashboard entry point
+├── dashboard.py                        # dashboard entry point
 └── requirements.txt
 ```
 
@@ -205,14 +205,14 @@ credit-card-fraud-detection/
 
 ```bash
 # Clone the repository
-git clone <repo-url>
-cd credit-card-fraud-detection
+git clone https://github.com/Anishnits019/Credit-Card-Fraud-Detection-System.git
+cd Credit Card Fraud Detection
 
 # Install dependencies
 pip install -r requirements.txt
 
 # Run the training pipeline
-python fraud_detection/components/modeltrainer.py
+python main.py
 ```
 
 ---
