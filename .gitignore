@@ -3,3 +3,8 @@ venv
 mlflow.db
 mlruns/
 commands.txt
+Artifacts
+Notebooks/merged_transactions.parquet
+logs
+fraud_detection_system.egg-info
+__pycache__/

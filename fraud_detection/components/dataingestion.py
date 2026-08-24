@@ -6,18 +6,13 @@ import pymongo
 
 from sklearn.model_selection import train_test_split  
 
-from diabetes.exception.exception import CustomException
-from diabetes.logging.logger import logging
-from diabetes.entity.config_entity import DataIngestionConfig
-from diabetes.entity.artifact_entity import DataIngestionArtifact
-from diabetes.components.customclasstrainer import CustomFeatureEngineering
+from fraud_detection.exception.exception import CustomException
+from fraud_detection.logging.logger import logging
+from fraud_detection.entity.config_entity import DataIngestionConfig
+from fraud_detection.entity.artifact_entity import DataIngestionArtifact
+from fraud_detection.components.customclasstrainer import CustomFeatureEngineering
 from dotenv import load_dotenv  
 load_dotenv() 
-
-MONGO_DB_URL = os.getenv("MONGO_DB_URL")
-if not MONGO_DB_URL:
-    logging.error("MONGO_DB_URL environment variable is missing in the .env file.")
-    raise Exception("MONGO_DB_URL is not set in .env file")
 
 class DataIngestion:
     def __init__(self, data_ingestion_config: DataIngestionConfig):
@@ -30,19 +25,31 @@ class DataIngestion:
 
     def import_data_from_database(self) -> pd.DataFrame:
         try:
-           s3_uri="s3://fraud-detection-pipeline-anish-964043552068-ap-south-1-an/merged_transactions.parquet"
-           logging.info(f"Connecting to AWS S3 and streaming: {s3_uri}")
-           data=pd.read_parquet(
-               s3_uri,
-               engine="fastparquet",
-               storage_options={
-                   "key":os.getenv("AWS_ACCESS_KEY_ID"),
-                   "secret":os.getenv("AWS_SECRET_ACCESS_KEY"),
-                   "client_kwargs":{
+            # FIX: Dynamically set the path to the current directory to avoid FileNotFoundError
+            current_dir = os.path.dirname(__file__)
+            local_file_path = os.path.join(current_dir, "merged_transactions.parquet")
+            
+            s3_uri="s3://fraud-detection-pipeline-anish-964043552068-ap-south-1-an/merged_transactions.parquet"
+
+            if os.path.exists(local_file_path):
+                 data=pd.read_parquet(local_file_path,engine="fastparquet")
+
+            else:
+                data=pd.read_parquet(
+                     s3_uri,
+                     engine="fastparquet",
+                     storage_options={
+                     "key":os.getenv("AWS_ACCESS_KEY_ID"),
+                     "secret":os.getenv("AWS_SECRET_ACCESS_KEY"),
+                     "client_kwargs":{
                        "region_name":os.getenv("AWS_DEFAULT_REGION")
                     }
                }
            )
+                # FIX: Ensure the directory exists before attempting to save the file
+                os.makedirs(os.path.dirname(local_file_path), exist_ok=True)
+                data.to_parquet(local_file_path, engine="fastparquet", index=False)
+
         #    database_name = self.data_ingestion_config.database_name
         #    collection_name = self.data_ingestion_config.collection_name
 
@@ -64,15 +71,15 @@ class DataIngestion:
         #    logging.info(f"DataFrame shape after extraction: {dataframe.shape}")
         #    return dataframe
 
-           dataframe = pd.DataFrame(data)
-           logging.info("Converted AWS records into Pandas DataFrame.")
+            dataframe = pd.DataFrame(data)
+            logging.info("Converted AWS records into Pandas DataFrame.")
 
-           if "_id" in dataframe.columns:
-            logging.info("Dropping default MongoDB '_id' column from the DataFrame.")
-            dataframe = dataframe.drop(columns=["_id"])
+            if "_id" in dataframe.columns:
+             logging.info("Dropping default MongoDB '_id' column from the DataFrame.")
+             dataframe = dataframe.drop(columns=["_id"])
            
-           logging.info(f"DataFrame shape after extraction: {dataframe.shape}")
-           return dataframe
+            logging.info(f"DataFrame shape after extraction: {dataframe.shape}")
+            return dataframe
 
        
         except Exception as e:
@@ -84,7 +91,6 @@ class DataIngestion:
           feature_store_path = self.data_ingestion_config.feature_store_file_path
           logging.info(f"Exporting raw data to Feature Store path: {feature_store_path}")
           
-          # Create parent directories if they don't exist
           os.makedirs(os.path.dirname(feature_store_path), exist_ok=True)
 
           dataframe.to_csv(feature_store_path, index=False, header=True)
@@ -96,6 +102,7 @@ class DataIngestion:
            logging.error("Exception occurred while exporting data into feature store.")
            raise CustomException(e, sys)
         
+    # FIX: Uncommented this function so self.cleaning_data() below doesn't cause an AttributeError
     def cleaning_data(self,dataframe:pd.DataFrame):
         try:
             custom_feature=CustomFeatureEngineering()
@@ -108,6 +115,9 @@ class DataIngestion:
     def split_data_as_train_test(self, dataframe: pd.DataFrame):
         try:
              logging.info("Initiating Train-Test split on the DataFrame.")
+             
+             dataframe = dataframe.sort_values('trans_date_trans_time')
+
              train_data, test_data = train_test_split(
                  dataframe, 
                  test_size=self.data_ingestion_config.train_test_split_ratio, 
@@ -140,7 +150,7 @@ class DataIngestion:
             
             dataframe = self.import_data_from_database()
             dataframe = self.export_data_into_feature_store(dataframe)
-            dataframe=self.cleaning_data(dataframe)
+            dataframe = self.cleaning_data(dataframe)
             self.split_data_as_train_test(dataframe)
             
             logging.info("Creating Data Ingestion Artifact object.")

@@ -1,6 +1,6 @@
 from datetime import datetime
 import os
-from diabetes.constant import training_pipeline
+from fraud_detection.constant import training_pipeline
 class TrainingPipelineConfig:
       def __init__(self,timestamp=datetime.now()):
             timestamp = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
@@ -86,7 +86,22 @@ class DataValidationConfig:
                   self.production_data_dir,
                   training_pipeline.PRODUCTION_DATA_NAME
             )
+class FeatureExtractionConfig:
+      def __init__(self,training_pipeline_config:TrainingPipelineConfig):
+            self.feature_extraction_dir:str=os.path.join(
+                  training_pipeline_config.artifact_dir,training_pipeline.DATA_FEATURE_EXTRACTION_DIR_NAME
+            )
+            self.training_file_path:str=os.path.join(
+                  self.feature_extraction_dir,
+                  training_pipeline.DATA_FEATURE_EXTRACTION_TRAIN_FILE_NAME
+            )
+            self.testing_file_path:str=os.path.join(
+                  self.feature_extraction_dir,
+                  training_pipeline.DATA_FEATURE_EXTRACTION_TEST_FILE_NAME
+            )
+
 class DataTransformationConfig:
+
       def __init__(self,training_pipeline_config:TrainingPipelineConfig):
             self.data_transformation_dir:str=os.path.join(
                   training_pipeline_config.artifact_dir,training_pipeline.DATA_TRANSFORMATION_DIR_NAME

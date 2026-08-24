@@ -12,3 +12,5 @@ datetime
 streamlit
 plotly
 folium
+fastapi
+unicorn
