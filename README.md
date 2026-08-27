@@ -71,7 +71,7 @@ flowchart TD
 
     D --> E["Fraud Probability Score"] --> F(["🎯 Production Threshold Optimizer<br/>Flagging Boundary = 0.37"])
 
-    F --> G{"Score ≥ 0.37 ?"}
+    F --> G{"Score ≥ 0.5 ?"}
     G -->|Yes| H(["🚩 FLAG: Fraud"])
     G -->|No| I(["✅ PASS: Approve"])
 
